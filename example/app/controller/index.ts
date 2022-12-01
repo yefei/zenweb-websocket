@@ -18,8 +18,8 @@ export class Handler {
   connection(ws: WebSocket) {
     this.ws = ws;
     console.log('on connection:');
-    ws.send('Welcome!');
     localUsers.add(ws);
+    ws.send('欢迎来到聊天室！当前在线用户 ' + localUsers.size + ' 人');
   }
 
   close() {
