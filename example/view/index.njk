@@ -1,0 +1,211 @@
+<style>
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Lato", sans-serif;
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFFFFF;
+}
+
+#stream-chat {
+  margin: 10px;
+  min-width: 500px;
+  width: 100%;
+  min-height: 500px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+#stream-chat h1 {
+  background: #2B2B2B;
+  color: #EEEEEE;
+  text-align: center;
+  font-weight: 300;
+  padding: 1rem;
+}
+
+#input-area {
+  display: flex;
+  min-height: 175px;
+  flex-direction: column;
+  background: #1D1D1D;
+  padding: 15px;
+}
+
+#send {
+  align-self: flex-end;
+  padding: 8px 15px;
+  margin: 3px;
+  background: #632F9F;
+  border: none;
+  color: #F8EBEC;
+  font-weight: 900;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  box-shadow: 0 0 10px 0px #4a2378;
+}
+
+#input {
+  flex-grow: 1;
+  border: 5px solid #282828;
+  flex-grow: 1;
+  background: #090909;
+  color: #919090;
+  margin-bottom: 0.7em;
+  resize: none;
+}
+#input:focus {
+  outline: none;
+}
+
+#messages {
+  min-height: 500px;
+  background: linear-gradient(to bottom, #2B2B2B, #1D1D1D);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-left: 12px;
+}
+#messages .even {
+  background: #171717;
+}
+#messages .odd {
+  background: #111111;
+}
+#messages .message {
+  padding: 3px 5px;
+}
+#messages .message .timestamp {
+  color: #626A6F;
+  margin-right: 0.1em;
+}
+#messages .message .name {
+  font-weight: 900;
+}
+#messages .message .text {
+  margin-left: 0.1em;
+  color: #BBB7AB;
+}
+
+.overflow {
+  overflow-y: scroll;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #5e5e5e;
+}
+
+::-webkit-scrollbar, ::-webkit-scrollbar-button, ::-webkit-scrollbar-track, ::-webkit-scrollbar-track-piece, ::-webkit-scrollbar-corner, ::-webkit-resizer {
+  background: #2B2B2B;
+}
+</style>
+
+<main id='stream-chat'>
+  <h1>WebSockets Demo</h1>
+  <div class='overflow'>
+    <div id='messages'></div>
+  </div>
+  <div id='input-area'>
+    <textarea id='input' type='text'></textarea>
+    <button id='send'>Set name</button>
+  </div>
+</main>
+
+<script>
+var connection = new WebSocket('ws://127.0.0.1:7001/ws')
+
+const input = document.querySelector('#input')
+const messages = document.querySelector('#messages')
+const overflow = document.querySelector('.overflow')
+const sendButton = document.querySelector('#send')
+
+let userName, userColor
+let oddMessage = true
+let autoScroll = true
+
+// Respond to new connection
+connection.addEventListener('open', (e) => {
+
+})
+
+// Respond to WebSocket messages
+connection.addEventListener('message', (message) => {
+	addMessage(message.data)
+  if (autoScroll) {
+    overflow.scrollTop = overflow.scrollHeight - overflow.clientHeight;
+  }
+})
+
+// Respond to user input
+function sendMessage(message) {
+  if (!message) return
+  input.value = ''
+  // The first message will be the user's name
+  if (!userName) {
+    userName = message
+    sendButton.innerHTML = 'Chat'
+    message = message + ' Join'
+  }
+  connection.send(message)
+}
+
+input.addEventListener('keydown', (e) => {
+	if (e.keyCode === 13) {
+		sendMessage(e.target.value)    	
+	}
+})
+
+sendButton.addEventListener('click', (e) => {
+  sendMessage(input.value)
+})
+
+// Add a message to message to DOM
+function addMessage(message) {
+	const newMsg = document.createElement('div')
+  const messageParity = addMessage.odd ? 'odd' : 'even'
+  addMessage.odd = !addMessage.odd
+  newMsg.setAttribute('class', `${messageParity} message`)
+	newMsg.innerHTML = `
+			<span class='timestamp'>${timeString(new Date())}</span>
+			<span class='text'>${message}</span>
+		`
+//	messages.insertBefore(newMsg, messages.childNodes[0])
+	messages.appendChild(newMsg)
+}
+addMessage.odd = true;
+
+overflow.addEventListener('scroll', (e) => {
+  autoScroll = false
+  const overflow = e.target
+  if (overflow.scrollTop === overflow.scrollHeight - overflow.clientHeight) {
+    autoScroll = true
+  }
+})
+
+// Helper functions
+function timeString(timestamp) {
+	const date = new Date(timestamp)
+	const hour = date.getHours() % 12
+	let min = date.getMinutes()
+	min = min < 10 ? `0${min}` : min
+	return `${hour}:${min}`
+}
+</script>

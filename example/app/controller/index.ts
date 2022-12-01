@@ -1,16 +1,28 @@
 import { Context, inject, mapping } from 'zenweb';
+import { websocket, WebSocket, Data } from '../../../src';
 
-export class IndexController {
+@websocket({ path: '/ws' })
+export class Handler {
   @inject ctx: Context;
+  ws: WebSocket;
 
   @mapping()
   index() {
-    this.ctx.success({
-      url: 'test'
-    });
+    return this.ctx.render('index');
   }
 
-  ws() {
+  connection(ws: WebSocket) {
+    this.ws = ws;
+    console.log('on connection:', ws);
+    ws.send('Welcome!');
+  }
 
+  close() {
+    console.log('on close:');
+  }
+
+  message(data: Data) {
+    console.log('on message:', data);
+    this.ws.send('reply:' + data.toString());
   }
 }
