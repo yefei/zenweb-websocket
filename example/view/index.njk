@@ -125,7 +125,7 @@ body {
   </div>
   <div id='input-area'>
     <textarea id='input' type='text'></textarea>
-    <button id='send'>Set name</button>
+    <button id='send'>设置姓名</button>
   </div>
 </main>
 
@@ -161,8 +161,7 @@ function sendMessage(message) {
   // The first message will be the user's name
   if (!userName) {
     userName = message
-    sendButton.innerHTML = 'Chat'
-    message = message + ' Join'
+    sendButton.innerHTML = '发送'
   }
   connection.send(message)
 }
