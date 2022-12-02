@@ -1,3 +1,6 @@
+<html>
+<head>
+<title>zenweb websocket demo</title>
 <style>
 * {
   padding: 0;
@@ -7,8 +10,7 @@
 
 body {
   font-family: "Lato", sans-serif;
-  min-height: 100vh;
-  min-width: 100vw;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -17,10 +19,7 @@ body {
 }
 
 #stream-chat {
-  margin: 10px;
-  min-width: 500px;
   width: 100%;
-  min-height: 500px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -117,7 +116,8 @@ body {
   background: #2B2B2B;
 }
 </style>
-
+</head>
+<body>
 <main id='stream-chat'>
   <h1>WebSocket 聊天室</h1>
   <div class='overflow'>
@@ -141,24 +141,14 @@ let userName, userColor
 let oddMessage = true
 let autoScroll = true
 
-// Respond to new connection
-connection.addEventListener('open', (e) => {
-
-})
-
-// Respond to WebSocket messages
 connection.addEventListener('message', (message) => {
 	addMessage(message.data)
-  if (autoScroll) {
-    overflow.scrollTop = overflow.scrollHeight - overflow.clientHeight;
-  }
+  overflow.scrollTop = overflow.scrollHeight - overflow.clientHeight;
 })
 
-// Respond to user input
 function sendMessage(message) {
   if (!message) return
   input.value = ''
-  // The first message will be the user's name
   if (!userName) {
     userName = message
     sendButton.innerHTML = '发送'
@@ -176,7 +166,6 @@ sendButton.addEventListener('click', (e) => {
   sendMessage(input.value)
 })
 
-// Add a message to message to DOM
 function addMessage(message) {
 	const newMsg = document.createElement('div')
   const messageParity = addMessage.odd ? 'odd' : 'even'
@@ -186,20 +175,10 @@ function addMessage(message) {
 			<span class='timestamp'>${timeString(new Date())}</span>
 			<span class='text'>${message}</span>
 		`
-//	messages.insertBefore(newMsg, messages.childNodes[0])
 	messages.appendChild(newMsg)
 }
 addMessage.odd = true;
 
-overflow.addEventListener('scroll', (e) => {
-  autoScroll = false
-  const overflow = e.target
-  if (overflow.scrollTop === overflow.scrollHeight - overflow.clientHeight) {
-    autoScroll = true
-  }
-})
-
-// Helper functions
 function timeString(timestamp) {
 	const date = new Date(timestamp)
 	const hour = date.getHours() % 12
@@ -208,3 +187,5 @@ function timeString(timestamp) {
 	return `${hour}:${min}`
 }
 </script>
+<body>
+</html>

@@ -7,7 +7,6 @@ const localUsers = new Set<WebSocket>();
 export class Handler {
   @inject ctx: Context;
   ws: WebSocket;
-
   name: string;
 
   @mapping()
@@ -15,24 +14,20 @@ export class Handler {
     return this.ctx.render('index');
   }
 
-  connection(ws: WebSocket) {
-    this.ws = ws;
-    console.log('on connection:');
-    localUsers.add(ws);
-    ws.send('欢迎来到聊天室！当前在线用户 ' + localUsers.size + ' 人');
+  connection() {
+    this.ctx.websocket.send('欢迎来到聊天室！当前在线用户 ' + localUsers.size + ' 人');
+    localUsers.add(this.ctx.websocket);
   }
 
   close() {
-    console.log('on close:');
-    localUsers.delete(this.ws);
-    this.sendAll(this.name + ' 离线');
+    localUsers.delete(this.ctx.websocket);
+    this.sendAll((this.name || '游客') + ' 离线，剩余 ' + localUsers.size + ' 人在线');
   }
 
   message(data: Data) {
-    console.log('on message:' + data);
     if (!this.name) {
       this.name = data.toString();
-      this.sendAll(this.name + ' 上线');
+      this.sendAll(this.name + ' 来了');
     } else {
       this.sendAll(this.name + ': ' + data.toString());
     }

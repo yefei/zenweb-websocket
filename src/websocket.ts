@@ -1,8 +1,9 @@
 import '@zenweb/inject';
-import * as http from 'http';
+import * as compose from 'koa-compose';
 import { parse } from 'url';
 import { Data, WebSocket, WebSocketServer } from 'ws';
-import { Middleware } from '@zenweb/core';
+import { Context, Middleware, SetupHelper } from '@zenweb/core';
+import { RouterPath, Router } from '@zenweb/router';
 
 const OPTION = Symbol('WebSocketHandlerClassOption');
 
@@ -13,7 +14,7 @@ export interface WebSocketHandler {
   /**
    * 当客户端连接成功后
    */
-  connection?(ws: WebSocket): void | Promise<void>;
+  connection?(): void | Promise<void>;
 
   /**
    * 当客户端断开链接后
@@ -27,7 +28,7 @@ export interface WebSocketHandler {
 }
 
 export interface WebSocketHandlerOption {
-  path: string;
+  path: RouterPath;
   middleware: Middleware[];
   wss: WebSocketServer;
   handler: { new (): WebSocketHandler };
@@ -40,7 +41,7 @@ export function websocket<C extends WebSocketHandler>({
   path,
   middleware,
 }: {
-  path: string,
+  path: RouterPath,
   middleware?: Middleware | Middleware[],
 }) {
   return function (target: { new (): C }) {
@@ -64,20 +65,26 @@ export function getHandlerOption(target: any): WebSocketHandlerOption {
 /**
  * 处理 http.Server 的 upgrade 请求
  */
-export function handlerUpgrade(server: http.Server, handlerList: WebSocketHandlerOption[]) {
-  server.on('upgrade', (request, socket, head) => {
-    const { pathname } = parse(request.url);
-    for (const opt of handlerList) {
-      if (pathname === opt.path) {
-        opt.wss.handleUpgrade(request, socket, head, async function done(ws) {
-          const cls = new opt.handler();
-          cls.connection && await cls.connection(ws);
-          cls.close && ws.on('close', () => cls.close());
-          ws.on('message', data => cls.message(data));
-        });
-        return;
-      }
-    }
-    socket.destroy();
+export function handlerUpgrade(setup: SetupHelper, handlerList: WebSocketHandlerOption[]) {
+  const fn = compose(setup.koa.middleware);
+  const router = new Router();
+  for (const h of handlerList) {
+    const middlewares = [...h.middleware, async (ctx: Context) => {
+      console.log('sdfasdasdasdasdasd')
+      h.wss.handleUpgrade(ctx.req, ctx.socket, ctx.head, async function done(ws) {
+        const cls = await ctx.injector.getInstance(h.handler);
+        cls.connection && await cls.connection();
+        cls.close && ctx.websocket.on('close', () => cls.close());
+        ctx.websocket.on('message', data => cls.message(data));
+      });
+    }];
+    router.get(h.path, ...middlewares);
+  }
+  setup.core.server.on('upgrade', (request, socket, head) => {
+    const ctx = setup.koa.createContext(request, {} as any);
+    fn(ctx).catch(e => {
+      console.log('ereee', e)
+      socket.destroy();
+    });
   });
 }

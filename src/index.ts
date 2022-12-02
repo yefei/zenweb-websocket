@@ -2,6 +2,7 @@ import path = require('path');
 import globby = require('globby');
 import { SetupFunction } from '@zenweb/core';
 import { getHandlerOption, handlerUpgrade, WebSocketHandlerOption } from './websocket';
+import { WebSocket } from 'ws';
 export { websocket, WebSocketHandler, WebSocketHandlerOption } from './websocket';
 export { WebSocket, Data } from 'ws';
 
@@ -34,8 +35,14 @@ export default function setup(option?: WebSocketOption): SetupFunction {
         }
       }
       if (handlerList.length) {
-        handlerUpgrade(setup.core.server, handlerList);
+        handlerUpgrade(setup, handlerList);
       }
     }
+  }
+}
+
+declare module '@zenweb/core' {
+  interface Context {
+    websocket: WebSocket;
   }
 }
