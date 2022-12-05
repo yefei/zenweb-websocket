@@ -1,12 +1,12 @@
 import { Context, inject, mapping } from 'zenweb';
-import { websocket, WebSocket, Data } from '../../../src';
+import { websocket, WebSocket } from '../../../src';
 
 const localUsers = new Set<WebSocket>();
 
 @websocket({ path: '/ws' })
 export class Handler {
   @inject ctx: Context;
-  ws: WebSocket;
+  @inject ws: WebSocket;
   name: string;
 
   @mapping()
@@ -14,17 +14,17 @@ export class Handler {
     return this.ctx.render('index');
   }
 
-  connection() {
-    this.ctx.websocket.send('欢迎来到聊天室！当前在线用户 ' + localUsers.size + ' 人');
-    localUsers.add(this.ctx.websocket);
+  onConnection() {
+    this.ws.send(this.ctx.ip + ' 欢迎来到聊天室！当前在线用户 ' + localUsers.size + ' 人');
+    localUsers.add(this.ws);
   }
 
-  close() {
-    localUsers.delete(this.ctx.websocket);
-    this.sendAll((this.name || '游客') + ' 离线，剩余 ' + localUsers.size + ' 人在线');
+  onClose() {
+    localUsers.delete(this.ws);
+    this.sendAll((this.name || this.ctx.ip) + ' 离线，剩余 ' + localUsers.size + ' 人在线');
   }
 
-  message(data: Data) {
+  onMessage(data: Buffer) {
     if (!this.name) {
       this.name = data.toString();
       this.sendAll(this.name + ' 来了');

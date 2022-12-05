@@ -2,9 +2,7 @@ import path = require('path');
 import globby = require('globby');
 import { SetupFunction } from '@zenweb/core';
 import { getHandlerOption, handlerUpgrade, WebSocketHandlerOption } from './websocket';
-import { WebSocket } from 'ws';
-export { websocket, WebSocketHandler, WebSocketHandlerOption } from './websocket';
-export { WebSocket, Data } from 'ws';
+export { websocket, WebSocket, WebSocketHandler, WebSocketHandlerOption } from './websocket';
 
 export interface WebSocketOption {
   discoverPaths?: string[];
@@ -18,6 +16,7 @@ export default function setup(option?: WebSocketOption): SetupFunction {
   option = Object.assign({}, defaultRouterOption, option);
   return async function websocket(setup) {
     setup.debug('option: %o', option);
+    setup.checkCoreProperty('router', '@zenweb/router');
     setup.checkCoreProperty('injector', '@zenweb/inject');
     if (option.discoverPaths && option.discoverPaths.length) {
       const handlerList: WebSocketHandlerOption[] = [];
@@ -34,15 +33,10 @@ export default function setup(option?: WebSocketOption): SetupFunction {
           }
         }
       }
+      setup.debug('paths:', handlerList.map(i => i.path));
       if (handlerList.length) {
         handlerUpgrade(setup, handlerList);
       }
     }
-  }
-}
-
-declare module '@zenweb/core' {
-  interface Context {
-    websocket: WebSocket;
   }
 }
