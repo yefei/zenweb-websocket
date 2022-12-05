@@ -32,7 +32,6 @@
     "url": "https://github.com/yefei/zenweb-websocket/issues"
   },
   "devDependencies": {
-    "@types/ws": "^8.5.3",
     "@zenweb/core": "^2.6.0",
     "@zenweb/view": "^2.4.1",
     "cross-env": "^7.0.3",
@@ -41,6 +40,7 @@
     "zenweb": "^3.0.20"
   },
   "dependencies": {
+    "@types/ws": "^8.5.3",
     "globby": "11.0.4",
     "ws": "^8.11.0"
   }
