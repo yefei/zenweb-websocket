@@ -3,7 +3,13 @@ import { websocket, WebSocket } from '../../../src';
 
 const localUsers = new Set<WebSocket>();
 
-@websocket({ path: '/ws' })
+@websocket({
+  path: '/ws',
+  middleware: (ctx, next) => {
+    // ctx.fail('errror')
+    return next();
+  },
+})
 export class Handler {
   @inject ctx: Context;
   @inject ws: WebSocket;
@@ -25,6 +31,9 @@ export class Handler {
   }
 
   onMessage(data: Buffer) {
+    if (data.toString() === 'err') {
+      this.ctx.fail('error test');
+    }
     if (!this.name) {
       this.name = data.toString();
       this.sendAll(this.name + ' 来了');

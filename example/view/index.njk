@@ -146,6 +146,15 @@ connection.addEventListener('message', (message) => {
   overflow.scrollTop = overflow.scrollHeight - overflow.clientHeight;
 })
 
+connection.addEventListener('close', e => {
+  console.log('close:', e);
+  if (e.code !== 1000) {
+    addMessage(`error: [${e.code}] ${e.reason}`)
+  } else {
+    addMessage('close')
+  }
+})
+
 function sendMessage(message) {
   if (!message) return
   input.value = ''
