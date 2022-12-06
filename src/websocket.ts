@@ -74,8 +74,11 @@ export function handlerUpgrade(setup: SetupHelper, handlerList: WebSocketHandler
             cls.onConnection && await cls.onConnection();
           })().catch(reject);
         })).then(() => {
-          const data = JSON.stringify({ status: ctx.status, error: ctx.body });
-          ws.close(1011, data);
+          // 处理异常信息
+          ws.close(1011,
+            Buffer.isBuffer(ctx.body) || 'string' === typeof ctx.body
+            ? ctx.body
+            : JSON.stringify({ status: ctx.status, error: ctx.body }));
         }).catch(err => {
           ctx.onerror(err);
           ws.close(1011, err);
