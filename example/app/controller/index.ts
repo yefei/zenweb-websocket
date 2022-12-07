@@ -34,6 +34,10 @@ export class Handler {
     if (data.toString() === 'err') {
       this.ctx.fail('error test');
     }
+    if (data.toString() === 'bye') {
+      this.ws.close();
+      return;
+    }
     if (!this.name) {
       this.name = data.toString();
       this.sendAll(this.name + ' 来了');

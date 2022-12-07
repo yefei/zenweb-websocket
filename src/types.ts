@@ -10,7 +10,22 @@ export type WebSocketServerOption = Pick<ws.ServerOptions,
   | 'maxPayload'
   | 'skipUTF8Validation'
   > & {
-  middleware?: Middleware | Middleware[],
+  /**
+   * 中间件
+   */
+  middleware?: Middleware | Middleware[];
+
+  /**
+   * 业务失败关闭码
+   * @default 4000
+   */
+  failCloseCode?: number;
+
+  /**
+   * 业务出错关闭码
+   * @default 4999
+   */
+  errorCloseCode?: number;
 };
 
 /**

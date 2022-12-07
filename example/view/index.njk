@@ -148,7 +148,7 @@ connection.addEventListener('message', (message) => {
 
 connection.addEventListener('close', e => {
   console.log('close:', e);
-  if (e.code !== 1000) {
+  if (e.code >= 4000) {
     addMessage(`error: [${e.code}] ${e.reason}`)
   } else {
     addMessage('close')

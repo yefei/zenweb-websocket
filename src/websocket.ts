@@ -31,6 +31,8 @@ export function handlerUpgrade(setup: SetupHelper, handlerList: WebSocketHandler
     middlewares: Middleware[],
     wss: ws.WebSocketServer,
     handler: WebSocketHandlerClass,
+    failCloseCode: number,
+    errorCloseCode: number,
   }>();
   for (const handler of handlerList) {
     const opt = getHandlerOption(handler);
@@ -42,6 +44,8 @@ export function handlerUpgrade(setup: SetupHelper, handlerList: WebSocketHandler
         noServer: true,
       }),
       handler,
+      failCloseCode: opt.failCloseCode || 4000,
+      errorCloseCode: opt.errorCloseCode || 4999,
     });
   }
 
@@ -75,13 +79,13 @@ export function handlerUpgrade(setup: SetupHelper, handlerList: WebSocketHandler
           })().catch(reject);
         })).then(() => {
           // 处理异常信息
-          ws.close(1011,
+          ws.close(matched.failCloseCode,
             Buffer.isBuffer(ctx.body) || 'string' === typeof ctx.body
             ? ctx.body
             : JSON.stringify({ status: ctx.status, error: ctx.body }));
-        }).catch(err => {
+        }, err => {
           ctx.onerror(err);
-          ws.close(1011, err);
+          ws.close(matched.errorCloseCode, err);
         });
       });
     } else {
